@@ -1,0 +1,16 @@
+{
+  "name": "w1a-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node-lambda run -f deploy.env",
+    "deploy": "node-lambda deploy -f deploy.env"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fuse.js": "^3.4.5",
+    "request": "^2.88.0"
+  }
+}
