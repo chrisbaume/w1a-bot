@@ -1,4 +1,4 @@
-[
+module.exports = [
     {
         "input": "Morning.",
         "output": [
@@ -1177,4 +1177,4 @@
             "Thanks."
         ]
     }
-]
+];

@@ -1,29 +1,19 @@
-const fs = require("fs");
 const request = require('request');
-const Fuse = require("fuse.js")
+const Fuse = require('fuse.js');
+const model = require('./model.js');
+const config = require('./config.js');
 
-const BOT_USERNAME='Ian Fletcher';
-const POST_MESSAGE_ENDPOINT='https://slack.com/api/chat.postMessage';
-const FUZZY_MATCH_THRESHOLD=0.1;
-
-let sendMessage = (data) => {
+let sendMessage = (data, error) => {
     data.as_user = false;
-    data.username = BOT_USERNAME;
-    request.post(POST_MESSAGE_ENDPOINT, {
+    data.username = config.BOT_USERNAME;
+    request.post(config.POST_MESSAGE_ENDPOINT, {
         auth: {
             bearer: process.env.BOT_USER_TOKEN
         },
         json: data
-    }, (error, res, body) => {
-        if (error) return error(error);
+    }, (err, res, body) => {
+        if (err) return error(err);
         if (!body.ok) return error(body.error);
-    });
-}
-
-let loadModel = (cb) => {
-    fs.readFile(__dirname +'/w1a.json', function (err, data) {
-        if (err) throw err;
-        cb(JSON.parse(data));
     });
 }
 
@@ -37,25 +27,23 @@ let verify = (event, error) => {
 }
 
 let findMatch = (text, cb) => {
-    loadModel((data) => {
-        var options = {
-            includeScore: true,
-            shouldSort: true,
-            threshold: FUZZY_MATCH_THRESHOLD,
-            location: 0,
-            distance: 100,
-            maxPatternLength: 32,
-            minMatchCharLength: 1,
-            keys: [
-                "input"
-            ]
-        };
-        var fuse = new Fuse(data, options);
-        var result = fuse.search(text);
-        if (result.length > 0 && result[0].score < FUZZY_MATCH_THRESHOLD) {
-            cb(randomItem(result[0].item.output))
-        }
-    });
+    var options = {
+        includeScore: true,
+        shouldSort: true,
+        threshold: config.FUZZY_MATCH_THRESHOLD,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 1,
+        keys: [
+            "input"
+        ]
+    };
+    var fuse = new Fuse(model, options);
+    var result = fuse.search(text);
+    if (result.length > 0 && result[0].score < config.FUZZY_MATCH_THRESHOLD) {
+        cb(randomItem(result[0].item.output))
+    }
 }
 
 let appMention = (event, error) => {
@@ -64,7 +52,7 @@ let appMention = (event, error) => {
             channel: event.channel,
             text: response
         }
-        sendMessage(message);
+        sendMessage(message, error);
     });
 }
 
@@ -75,7 +63,7 @@ let eventCallback = (event, error) => {
             channel: event.event.channel,
             text: response
         }
-        sendMessage(message);
+        sendMessage(message, error);
     });
 }
 
