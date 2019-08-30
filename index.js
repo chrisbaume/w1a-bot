@@ -21,9 +21,9 @@ let randomItem = (items) => {
     return items[Math.floor(Math.random()*items.length)];
 }
 
-let verify = (event, error) => {
-    if (event.token === process.env.VERIFICATION_TOKEN) return event.challenge;
-    else error('Token does not match.');
+let verify = (event, cb) => {
+    if (event.token === process.env.VERIFICATION_TOKEN) cb(null, event.challenge);
+    else cb('Token does not match.');
 }
 
 let findMatch = (text) => {
@@ -74,13 +74,13 @@ let eventCallback = (event, error) => {
     }
 }
 
-exports.handler = (event, context, error) => {
+exports.handler = (event, context, cb) => {
     switch(event.type) {
         case 'app_mention':
-            return appMention(event, error);
+            return appMention(event, cb);
         case 'url_verification':
-            return verify(event, error);
+            return verify(event, cb);
         case 'event_callback':
-            return eventCallback(event, error);
+            return eventCallback(event, cb);
     }
 };
