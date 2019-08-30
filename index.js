@@ -26,14 +26,14 @@ let verify = (event, error) => {
     else error('Token does not match.');
 }
 
-let findMatch = (text, cb) => {
+let findMatch = (text) => {
+    if (text.length < config.MIN_TEXT_LEN ||
+        text.length > config.MAX_TEST_LEN) return;
     var options = {
-        includeScore: true,
-        shouldSort: true,
         threshold: config.FUZZY_MATCH_THRESHOLD,
         location: 0,
         distance: 100,
-        maxPatternLength: 32,
+        maxPatternLength: config.MAX_TEST_LEN,
         minMatchCharLength: 1,
         keys: [
             "input"
@@ -41,30 +41,37 @@ let findMatch = (text, cb) => {
     };
     var fuse = new Fuse(model, options);
     var result = fuse.search(text);
-    if (result.length > 0 && result[0].score < config.FUZZY_MATCH_THRESHOLD) {
-        cb(randomItem(result[0].item.output))
+    for (let match of result) {
+        if (Math.abs(text.length - match.input.length) <= config.FUZZY_MATCH_MAX_LEN_DIFF) {
+            let response = randomItem(match.output);
+            console.log(`INPUT: "${text}", OUTPUT: "${response}"`);
+            return response;
+        }
     }
+    return null;
 }
 
 let appMention = (event, error) => {
-    findMatch(event.text, (response) => {
+    let response = findMatch(event.text);
+    if (response) {
         let message = {
             channel: event.channel,
             text: response
         }
         sendMessage(message, error);
-    });
+    }
 }
 
 let eventCallback = (event, error) => {
     if ('subtype' in event.event) return;
-    findMatch(event.event.text, (response) => {
+    let response = findMatch(event.event.text);
+    if (response) {
         let message = {
             channel: event.event.channel,
             text: response
         }
         sendMessage(message, error);
-    });
+    }
 }
 
 exports.handler = (event, context, error) => {
