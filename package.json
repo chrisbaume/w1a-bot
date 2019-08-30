@@ -12,5 +12,8 @@
   "dependencies": {
     "fuse.js": "^3.4.5",
     "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.2.2"
   }
 }
